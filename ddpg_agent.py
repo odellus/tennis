@@ -12,7 +12,6 @@ import torch.optim as optim
 
 from model import Actor, Critic
 from noise import OUNoise
-from replay_buffer import ReplayBuffer
 from utils import device
 from prioritized_memory import Memory
 
@@ -65,7 +64,6 @@ class Agent:
         self.noise_min = noise_min
 
         # Replay memory
-        self.memory = ReplayBuffer(action_size, buffer_size, batch_size, random_seed)
         self._memory = Memory(capacity=buffer_size, seed=random_seed)
 
         # Count number of steps
@@ -79,8 +77,6 @@ class Agent:
 
         # Learn if enough samples are available in memory
         if self._memory.tree.n_entries > self.batch_size and self.n_steps % self.update_every == 0:
-            # experiences = self.memory.sample()
-            # self.learn(experiences, self.gamma)
             self.learn()
 
         self.noise_modulation *= self.noise_decay
@@ -170,18 +166,7 @@ class Agent:
             gamma (float): discount factor
         """
         experiences, idxs, is_weight = self._memory.sample(self.batch_size)
-        if isinstance(experiences, list):
-            states, actions, rewards, next_states, dones = self.unroll_experiences(experiences)
-        else:
-            print("Shit is all fucked up")
-            print(experiences)
-            return
-        # if isinstance(res, tuple):
-        #     states, actions, rewards, next_states, dones = res
-        # else:
-        #     print("Shit is all fucked up")
-        #     print(res)
-        #     return
+        states, actions, rewards, next_states, dones = self.unroll_experiences(experiences)
 
         # Update critic
         # Get predicted next-state actions and Q-values from target models.

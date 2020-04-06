@@ -12,9 +12,10 @@ from collections import deque
 
 from utils import load_cfg, setup_experiment, persist_experiment
 from environment import get_agent_unity, step_unity
+from experiment_db import get_db, setup_experiment, persist_experiment
 
 
-def ddpg(env, agent, cfg):
+def ddpg(env, agent, cfg, db):
     # Get configuration
     n_episodes = cfg["Training"]["Number_episodes"]
     max_t = cfg["Training"]["Max_timesteps"]
@@ -25,7 +26,8 @@ def ddpg(env, agent, cfg):
     scores_deque = deque(maxlen=print_every)
     scores = []
     # Create a directory to save the findings.
-    experiment_dir = setup_experiment(cfg)
+    # experiment_dir = setup_experiment(cfg)
+    experiment_id = setup_experiment(db, cfg)
     brain_name = env.brain_names[brain_index]
     # Train for n_episodes
     for i_episode in range(1, n_episodes+1):
@@ -51,26 +53,26 @@ def ddpg(env, agent, cfg):
             score += rewards
             if np.any(dones):
                 break
-        scores_deque.append(score)
-        scores.append(score)
-        mean_score = np.vstack(scores_deque).mean(axis=0).max()
-        print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, mean_score), end="")
+        scores_deque.append(np.max(score))
+        scores.append(np.max(score))
+        print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, np.mean(scores_deque)), end="")
         # print("\rEpisode {}\tAverage Score: {}".format(i_episode, scores_deque), end="")
 
         visualize = False
         if i_episode % print_every == 0:
-            persist_experiment(experiment_dir, i_episode, agent, scores)
-            print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, mean_score))
-            print("\rEpisode {}\tStandard Deviation of Last {} Scores: {:.4f}".format(i_episode, print_every, np.std(scores_deque)))
+            # persist_experiment(experiment_dir, i_episode, agent, scores)
+            persist_experiment(db, experiment_id, i_episode, agent, scores, print_every)
+            print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, np.mean(scores_deque)))
 
 
     return scores
 
 def main():
     cfg = load_cfg()
+    db = get_db()
     env, agent = get_agent_unity(cfg)
     # agent = load_pretrained(agent)
-    scores = ddpg(env ,agent, cfg)
+    scores = ddpg(env ,agent, cfg, db)
 
 if __name__ == "__main__":
     main()
