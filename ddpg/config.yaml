@@ -9,38 +9,41 @@ Environment:
   Success: 0.5          # score success cutoff
   # Location of ml-agents python directory.
   Unity_pythonpath: /home/thomas/code/ml-agents-0.4.0b/python
-  Random_seed: 2        # random seed passed to all RNGs involved in code.
+  Random_seed: 678623        # random seed passed to all RNGs involved in code.
 
 # Parameters for the DQN Agent
 Agent:
   Buffer_size: 100000    # replay buffer size
-  Batch_size: 128         # minibatch size
-  Gamma: 0.999             # discount factor
-  Tau: 0.001              # for soft update of target parameters
-  Lr_actor: 0.0003        # learning rate for actor
+  Batch_size: 2         # minibatch size
+  Gamma: 0.99             # discount factor
+  Tau: 0.0001              # for soft update of target parameters
+  Lr_actor: 0.0001        # learning rate for actor
   Lr_critic: 0.001        # learning rate for critic
-  Weight_decay: 0.0001       # L2 weight decay for regularization
+  Weight_decay: 0.0       # L2 weight decay for regularization
   Brain_index: 0          # index of agent in environment
-  Noise_decay: 1.0       # How much to decay noise modulation during each step.
-  Noise_min: 0.0001
-  Update_every: 24       # How many agent.step()s to take before doing a learning step.
+  Noise_decay: 0.99999       # How much to decay noise modulation during each step.
+  Noise_min: 0.4
+  Noise_initial: 1.0
+  Update_every: 1       # How many agent.step()s to take before doing a learning step.
 
 # Hyperparameters used during optimization
 Training:
   Number_episodes: 10000  # Number of episodes
   Max_timesteps: 3000    # Maximum number of timesteps per episode
   Score_window: 100       # Length of averaging window for agent rewards
+  Random_episodes: 100000
+  Starting_random: 100
 
 # Hyperparameters used to define the network architecture
 Model:
-  fc1_size_actor:   400    # Dimensionality of first fully connected actor layer
-  fc2_size_actor:   300    # Dimensionality of second fully connected actor layer
-  fcs1_size_critic: 400    # Dimensionality of first fully connected critic layer
-  fc2_size_critic:  300    # Dimensionality of second fully connected critic layer
+  fc1_size_actor:   128    # Dimensionality of first fully connected actor layer
+  fc2_size_actor:   128    # Dimensionality of second fully connected actor layer
+  fcs1_size_critic: 128    # Dimensionality of first fully connected critic layer
+  fc2_size_critic:  128    # Dimensionality of second fully connected critic layer
   weight_init_lim:   0.003 # Absolute value of initial weights of output layers
 
 # Hyperparameters which define the noise process
 Noise:
   Mu:    0.0            # Mean value of the noise process.
   Theta: 0.15           # weight given to (mu - x) in computation of dx
-  Sigma: 0.2            # weight given to uniform random number in [0,1)
+  Sigma: 0.4            # weight given to uniform random number in [0,1)

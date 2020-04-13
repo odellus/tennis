@@ -1,6 +1,6 @@
 import sys
 import gym
-from ddpg_agent import Agent
+from new_approach import Agent
 
 
 def get_agent_unity(cfg):

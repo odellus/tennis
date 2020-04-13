@@ -36,8 +36,11 @@ class Actor(nn.Module):
             self.seed = torch.manual_seed(seed)
 
             # Create layers
+            self.bn1 = nn.BatchNorm1d(state_size)
             self.fc1 = nn.Linear(state_size, fc1_units)
+            self.bn2 = nn.BatchNorm1d(fc1_units)
             self.fc2 = nn.Linear(fc1_units, fc2_units)
+            self.bn3 = nn.BatchNorm1d(fc2_units)
             self.fc3 = nn.Linear(fc2_units, action_size)
             self.reset_parameters()
 
@@ -45,12 +48,17 @@ class Actor(nn.Module):
             self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
             self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
             self.fc3.weight.data.uniform_(-self.weight_init_lim, self.weight_init_lim)
+            self.bn1.reset_parameters()
+            self.bn2.reset_parameters()
+            self.bn3.reset_parameters()
 
         def forward(self, state):
             """Build an actor policy that maps states to actions."""
-            x = F.relu(self.fc1(state))
-            x = F.relu(self.fc2(x))
-            return torch.tanh(self.fc3(x))
+            if len(state.shape) == 1:
+                state = state.unsqueeze(0)
+            x = F.relu(self.fc1(self.bn1(state)))
+            x = F.relu(self.fc2(self.bn2(x)))
+            return torch.tanh(self.fc3(self.bn3(x)))
 
 class Critic(nn.Module):
     """Critic value model."""
@@ -69,8 +77,11 @@ class Critic(nn.Module):
         self.seed = torch.manual_seed(seed)
 
         # Create layers
+        self.bns1 = nn.BatchNorm1d(state_size)
         self.fcs1 = nn.Linear(state_size, fcs1_units)
+        self.bn2 = nn.BatchNorm1d(fcs1_units + action_size)
         self.fc2 = nn.Linear(fcs1_units + action_size, fc2_units)
+        self.bn3 = nn.BatchNorm1d(fc2_units)
         self.fc3 = nn.Linear(fc2_units, 1) # Mapping onto a single scalar value.
         self.reset_parameters()
 
@@ -78,14 +89,17 @@ class Critic(nn.Module):
         self.fcs1.weight.data.uniform_(*hidden_init(self.fcs1))
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.fc3.weight.data.uniform_(-self.weight_init_lim, self.weight_init_lim)
+        self.bns1.reset_parameters()
+        self.bn2.reset_parameters()
+        self.bn3.reset_parameters()
 
     def forward(self, state, action):
         """Build a critic value network that maps state-action pairs to Q-values."""
-        xs = F.relu(self.fcs1(state))
-        if len(state.shape) >= 2:
-            dim = 1
-        else:
-            dim = 0
-        x = torch.cat((xs, action), dim=dim)
-        x = F.relu(self.fc2(x))
-        return self.fc3(x)
+        if len(state.shape) == 1:
+            state = state.unsqueeze(0)
+        if len(action.shape) == 1:
+            action = action.unsqueeze(0)
+        xs = F.relu(self.fcs1(self.bns1(state)))
+        x = torch.cat((xs, action), dim=1)
+        x = F.relu(self.fc2(self.bn2(x)))
+        return self.fc3(self.bn3(x))

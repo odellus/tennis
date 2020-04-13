@@ -20,7 +20,11 @@ def ddpg(env, agent, cfg, db):
     n_episodes = cfg["Training"]["Number_episodes"]
     max_t = cfg["Training"]["Max_timesteps"]
     print_every = cfg["Training"]["Score_window"]
+    random_episodes = cfg["Training"]["Random_episodes"]
+    starting_random = cfg["Training"]["Starting_random"]
     brain_index = cfg["Agent"]["Brain_index"]
+    update_every_ = agent.update_every
+
 
     #Initialize score lists
     scores_deque = deque(maxlen=print_every)
@@ -37,9 +41,14 @@ def ddpg(env, agent, cfg, db):
         agent.reset()
         actions = np.zeros((n_agents, agent.action_size))
         score = np.zeros(n_agents)
+        agent.update_every = 1000000
         for t in range(max_t):
-            for i_agent in range(n_agents):
-                actions[i_agent, :] = agent.act(states[i_agent, :])
+            if i_episode % random_episodes == 0 or i_episode <= starting_random:
+                actions = 2 * np.random.rand(n_agents, agent.action_size) - 1.0
+            else:
+                agent.update_every = update_every_
+                for i_agent in range(n_agents):
+                    actions[i_agent, :] = agent.act(states[i_agent, :])
             next_states, rewards, dones, _ = step_unity(env, actions, brain_name)
             for i_agent in range(n_agents):
                 agent.step(
@@ -53,16 +62,17 @@ def ddpg(env, agent, cfg, db):
             score += rewards
             if np.any(dones):
                 break
-        scores_deque.append(np.max(score))
-        scores.append(np.max(score))
-        print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, np.mean(scores_deque)), end="")
+        scores_deque.append(score)
+        scores.append(score)
+        mean_score = np.vstack(scores_deque).mean(axis=0).max()
+        print("\rEpisode {}\tAverage Score: {:.4f}\tNoise Modulation: {:.3f}".format(i_episode, mean_score, agent.noise_modulation), end="")
         # print("\rEpisode {}\tAverage Score: {}".format(i_episode, scores_deque), end="")
 
         visualize = False
         if i_episode % print_every == 0:
             # persist_experiment(experiment_dir, i_episode, agent, scores)
             persist_experiment(db, experiment_id, i_episode, agent, scores, print_every)
-            print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, np.mean(scores_deque)))
+            print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, mean_score))
 
 
     return scores
