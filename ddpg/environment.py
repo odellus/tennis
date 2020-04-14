@@ -3,7 +3,7 @@ import gym
 from ddpg_agent import Agent
 
 
-def get_agent_unity(cfg):
+def get_agents_unity(cfg):
     # Unpack configuration
     unity_pythonpath = cfg["Environment"]["Unity_pythonpath"]
     file_name = cfg["Environment"]["Filepath"]
@@ -24,6 +24,27 @@ def get_agent_unity(cfg):
     agent1 = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
     agent2 = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
     return env, agent1, agent2
+
+def get_agent_unity(cfg):
+    # Unpack configuration
+    unity_pythonpath = cfg["Environment"]["Unity_pythonpath"]
+    file_name = cfg["Environment"]["Filepath"]
+    seed = cfg["Environment"]["Random_seed"]
+    brain_index = cfg["Agent"]["Brain_index"]
+    # Append unityagents directory to sys.path
+    sys.path.append(unity_pythonpath)
+    # Now this will work.
+    from unityagents import UnityEnvironment
+    # Create an environment
+    env = UnityEnvironment(file_name=file_name, seed=seed)
+    # Get information about the environment
+    brain_name = env.brain_names[brain_index]
+    brain = env.brains[brain_name]
+    state_size = brain.vector_observation_space_size * brain.num_stacked_vector_observations
+    action_size = brain.vector_action_space_size
+    # Create an agent using state and action sizes of environment
+    agent = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
+    return env, agent
 
 
 def step_unity(
