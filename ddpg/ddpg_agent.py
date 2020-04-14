@@ -13,7 +13,7 @@ import torch.optim as optim
 from model import Actor, Critic
 from noise import OUNoise
 from utils import device
-from prioritized_memory import Memory
+from replay_buffer import ReplayBuffer
 
 class Agent:
     """Initeracts with and learns from the environment."""
@@ -65,7 +65,9 @@ class Agent:
         self.noise_min = noise_min
 
         # Replay memory
-        self._memory = Memory(capacity=buffer_size, seed=random_seed)
+        # self._memory = Memory(capacity=buffer_size, seed=random_seed)
+        self.memory = ReplayBuffer(action_size, buffer_size, batch_size, random_seed)
+
 
         # Count number of steps
         self.n_steps = 0
@@ -74,44 +76,16 @@ class Agent:
     def step(self, state, action, reward, next_state, done):
         """Save experience in replay memory, and use random sample from buffer
         to learn."""
-        self.append_sample(state, action, reward, next_state, done)
+        self.memory.add(state, action, reward, next_state, done)
 
         # Learn if enough samples are available in memory
-        if self._memory.tree.n_entries > self.batch_size and self.n_steps % self.update_every == 0:
-            self.learn()
+        if len(self.memory) > self.batch_size and self.n_steps % self.update_every == 0:
+            experiences = self.memory.sample()
+            self.learn(experiences)
 
         self.noise_modulation *= self.noise_decay
         self.noise_modulation = max(self.noise_modulation, self.noise_min)
         self.n_steps += 1
-
-    def append_sample(self, state, action, reward, next_state, done):
-        """Add (s, a, r, s') to the memory after computing priority."""
-
-        next_state_ = torch.from_numpy(next_state).float().to(device)
-        state_ = torch.from_numpy(state).float().to(device)
-        action_ = torch.from_numpy(action).float().to(device)
-
-
-        # with torch.no_grad():
-        self.actor_target.eval()
-        self.critic_target.eval()
-        self.critic_local.eval()
-
-        action_next = self.actor_target(next_state_)
-        action_next = action_next.squeeze(0)
-        # print(next_state_.shape)
-        # print(action_next.shape)
-        Q_target_next = self.critic_target(next_state_, action_next)
-        Q_expected = self.critic_local(state_, action_)
-
-        self.actor_target.train()
-        self.critic_target.train()
-        self.critic_local.train()
-
-        Q_target = reward + (self.gamma * Q_target_next * (1 - done))
-
-        error = abs(Q_target - Q_expected)
-        self._memory.add(error.cpu().data, (state, action, reward, next_state, done))
 
     def act(self, state, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -127,44 +101,7 @@ class Agent:
         self.n_steps = 0
         self.noise.reset()
 
-
-    def unroll_experiences(self, experiences):
-        # First they're empty lists
-        states, actions, rewards, next_states, dones = [], [], [], [], []
-        # Let's fill them up
-
-        for experience in experiences:
-            if not isinstance(experience, tuple):
-                continue
-            state, action, reward, next_state, done = experience
-            states.append(state)
-            actions.append(action)
-            rewards.append(reward)
-            next_states.append(next_state)
-            dones.append(done)
-
-        n_states = len(states)
-        n_missing = self.batch_size - n_states
-        if n_missing > 0:
-            for k in range(n_missing):
-                # Just repeat the last element
-                states.append(state)
-                actions.append(action)
-                rewards.append(reward)
-                next_states.append(next_state)
-                dones.append(done)
-
-        # Now they're differentiable tensors
-        states = torch.from_numpy(np.vstack(states)).float().to(device)
-        actions = torch.from_numpy(np.vstack(actions)).float().to(device)
-        rewards = torch.from_numpy(np.vstack(rewards)).float().to(device)
-        next_states = torch.from_numpy(np.vstack(next_states)).float().to(device)
-        dones = torch.from_numpy(np.vstack(dones).astype(np.int8)).float().to(device)
-
-        # Now they're yours
-        return (states, actions, rewards, next_states, dones)
-
-    def learn(self):
+    def learn(self, experiences):
         """Update policy and value parameters given batch of experience tuples.
         Q_targets = r + gamma * cirtic_target(next_state, actor_state(next)state)
         where:
@@ -176,21 +113,24 @@ class Agent:
             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
             gamma (float): discount factor
         """
-        experiences, idxs, is_weight = self._memory.sample(self.batch_size)
-        states, actions, rewards, next_states, dones = self.unroll_experiences(experiences)
+        states, actions, rewards, next_states, dones = experiences
 
         # Update critic
         # Get predicted next-state actions and Q-values from target models.
+        self.actor_target.eval()
+        self.critic_target.eval()
+
         actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(next_states, actions_next)
         # Compute Q targets for current states (y_i)
         Q_targets = rewards + (self.gamma * Q_targets_next * (1 - dones))
+
+        # We didn't want actor_target or critc_target showing up in the graph.
+        self.actor_target.train()
+        self.critic_target.train()
+
         # Compute critic loss
         Q_expected = self.critic_local(states, actions)
-
-        error = np.abs((Q_targets - Q_expected).cpu().data.numpy())
-        for k in range(self.batch_size):
-            self._memory.update(idxs[k], error[k])
 
         critic_loss = F.mse_loss(Q_expected, Q_targets)
 

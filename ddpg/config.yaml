@@ -14,12 +14,12 @@ Environment:
 # Parameters for the DQN Agent
 Agent:
   Buffer_size: 100000    # replay buffer size
-  Batch_size: 2         # minibatch size
+  Batch_size: 128         # minibatch size
   Gamma: 0.99             # discount factor
   Tau: 0.0001              # for soft update of target parameters
   Lr_actor: 0.0001        # learning rate for actor
   Lr_critic: 0.001        # learning rate for critic
-  Weight_decay: 0.0       # L2 weight decay for regularization
+  Weight_decay: 0.001       # L2 weight decay for regularization
   Brain_index: 0          # index of agent in environment
   Noise_decay: 0.99999       # How much to decay noise modulation during each step.
   Noise_min: 0.4
@@ -32,7 +32,7 @@ Training:
   Max_timesteps: 3000    # Maximum number of timesteps per episode
   Score_window: 100       # Length of averaging window for agent rewards
   Random_episodes: 100000
-  Starting_random: 100
+  Starting_random: 200
 
 # Hyperparameters used to define the network architecture
 Model:

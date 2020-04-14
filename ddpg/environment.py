@@ -1,6 +1,6 @@
 import sys
 import gym
-from new_approach import Agent
+from ddpg_agent import Agent
 
 
 def get_agent_unity(cfg):
@@ -21,8 +21,9 @@ def get_agent_unity(cfg):
     state_size = brain.vector_observation_space_size * brain.num_stacked_vector_observations
     action_size = brain.vector_action_space_size
     # Create an agent using state and action sizes of environment
-    agent = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
-    return env, agent
+    agent1 = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
+    agent2 = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
+    return env, agent1, agent2
 
 
 def step_unity(
