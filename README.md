@@ -16,7 +16,7 @@ cp -r Tennis_Linux_NoVis ddpg/Tennis_Linux_NoVis
 git clone -b 0.4.0b https://github.com/Unity-Technologies/ml-agents.git ml-agents
 cp -r ml-agents ddpg/ml-agents
 ```
-3. Open [`ddpg/config.yaml`](https://github.com/odellus/reacher/blob/master/config.yaml#L11) and change `Environment:Unity_pythonpath` to `./ml-agents/python`  
+3. Open [`ddpg/config.yaml`](https://github.com/odellus/tennis/blob/master/ddpg/config.yaml#L11) and change `Environment:Unity_pythonpath` to `./ml-agents/python`  
 4.
 To train a DDPG network open a terminal and enter
 ```bash
