@@ -1,4 +1,5 @@
 Tennis_Linux_NoVis
+./*.zip
 __pycache__
 unity-environment.log
 ddpg/*.pth
