@@ -2,9 +2,8 @@
 
 Effort to train an agent (or agents) to play tennis collaboratively.
 
-To install the pre-requisite libraries first:
-1. [install MongoDB](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/) then
-2. Run in the terminal
+## **SETUP**
+[Install MongoDB](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/), then run in the terminal
 ```bash
 # Install dependencies
 python3 -m pip install --user torch pymongo matplotlib numpy
@@ -16,9 +15,11 @@ cp -r Tennis_Linux_NoVis ddpg/Tennis_Linux_NoVis
 git clone -b 0.4.0b https://github.com/Unity-Technologies/ml-agents.git ml-agents
 cp -r ml-agents ddpg/ml-agents
 ```  
-3. To train a DDPG network open a terminal and enter
+
+## **RUN**
+To train a DDPG network open a terminal and enter
 ```bash
 cd ddpg
 python3 ddpg.py
-```
-4. Good luck!
+```  
+Good luck!
