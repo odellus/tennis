@@ -78,18 +78,3 @@ def step_unity(
            env_info.rewards, \
            env_info.local_done, \
            env_info
-
-
-
-def get_agent_gym(cfg):
-    # Unpack configuration
-    random_seed = cfg["Environment"]["Random_seed"]
-
-    # Get Pendulum environment and seed
-    env = gym.make("Pendulum-v0")
-    env.seed(random_seed)
-
-    # Get stat and action sizes and initialize an agent
-    state_size, action_size = get_state_action_sizes(env)
-    agent = Agent(state_size=state_size, action_size=action_size, random_seed=random_seed, cfg=cfg)
-    return env, agent
