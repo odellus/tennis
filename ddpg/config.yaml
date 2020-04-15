@@ -8,7 +8,7 @@ Environment:
   Filepath: ./Tennis_Linux_NoVis/Tennis.x86_64
   Success: 0.5          # score success cutoff
   # Location of ml-agents python directory.
-  Unity_pythonpath: /home/thomas/code/ml-agents-0.4.0b/python
+  Unity_pythonpath: ./ml-agents/python
   Random_seed: 4651        # random seed passed to all RNGs involved in code.
 
 # Parameters for the DQN Agent
