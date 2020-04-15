@@ -183,9 +183,8 @@ def load_actor(weights, agent):
 def load_critic(weights, agent):
     """
     """
-    with io.BytesIO(weights) as w:
-        agent.actor_local.load_state_dict(torch.load(w))
-        agent.actor_target.load_state_dict(torch.load(w))
+    agent.actor_local.load_state_dict(torch.load(io.BytesIO(weights)))
+    agent.actor_target.load_state_dict(torch.load(io.BytesIO(weights)))
     return agent
 
 

@@ -1,5 +1,6 @@
 import sys
 import gym
+import torch
 from ddpg_agent import Agent
 
 
@@ -31,6 +32,7 @@ def get_agent_unity(cfg):
     file_name = cfg["Environment"]["Filepath"]
     seed = cfg["Environment"]["Random_seed"]
     brain_index = cfg["Agent"]["Brain_index"]
+    pretrained = cfg["Training"]["Pretrained"]
     # Append unityagents directory to sys.path
     sys.path.append(unity_pythonpath)
     # Now this will work.
@@ -44,8 +46,18 @@ def get_agent_unity(cfg):
     action_size = brain.vector_action_space_size
     # Create an agent using state and action sizes of environment
     agent = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
+    if pretrained:
+        agent = load_agent_weights(agent, cfg)
+        print("Loaded pretrained weights!")
     return env, agent
 
+
+def load_agent_weights(agent, cfg):
+    actor_fname = cfg["Training"]["Actor_fname"]
+    critic_fname = cfg["Training"]["Critic_fname"]
+    agent.actor_local.load_state_dict(torch.load(actor_fname))
+    agent.critic_local.load_state_dict(torch.load(critic_fname))
+    return agent
 
 def step_unity(
     env,

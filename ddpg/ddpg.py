@@ -10,7 +10,7 @@ import pickle as pkl
 
 from collections import deque
 
-from utils import load_cfg, setup_experiment, persist_experiment
+from utils import load_cfg, setup_experiment, persist_experiment, pkl_dump
 from environment import get_agents_unity, get_agent_unity, step_unity
 from experiment_db import get_db, setup_experiment, persist_experiment
 
@@ -94,6 +94,8 @@ def ddpg_selfplay(env, agent, cfg, db):
     random_episodes = cfg["Training"]["Random_episodes"]
     starting_random = cfg["Training"]["Starting_random"]
     brain_index = cfg["Agent"]["Brain_index"]
+    dump_agent = cfg["Training"]["Dump_agent"]
+    success = cfg["Environment"]["Success"]
 
 
     #Initialize score lists
@@ -102,6 +104,7 @@ def ddpg_selfplay(env, agent, cfg, db):
     # Create a directory to save the findings.
     # experiment_dir = setup_experiment(cfg)
     experiment_id = setup_experiment(db, cfg)
+    print("Experiment ID: {}".format(experiment_id))
     brain_name = env.brain_names[brain_index]
     # Train for n_episodes
     for i_episode in range(1, n_episodes+1):
@@ -143,16 +146,46 @@ def ddpg_selfplay(env, agent, cfg, db):
             persist_experiment(db, experiment_id, i_episode, agent, scores, print_every)
             # persist_experiment(db, experiment_id, i_episode, agent2, scores, print_every)
             print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, mean_score))
-
+        if i_episode % dump_agent == 0:
+            # To heck with it let's save some to disk even though I have utilities to load.
+            # It's important.
+            fpath_actor = "checkpoint_actor_{}.pth".format(i_episode)
+            fpath_critic = "checkpoint_critic_{}.pth".format(i_episode)
+            torch.save(agent.actor_local.state_dict(), fpath_actor)
+            torch.save(agent.critic_local.state_dict(), fpath_critic)
+        if mean_score >= success:
+            # This is going to be the first thing I'd be digging in the database for,
+            # so here you go.
+            fpath_actor = "checkpoint_actor_winner_{}.pth".format(i_episode)
+            fpath_critic = "checkpoint_critic_winner_{}.pth".format(i_episode)
+            torch.save(agent.actor_local.state_dict(), fpath_actor)
+            torch.save(agent.critic_local.state_dict(), fpath_critic)
+            pkl_dump(scores, "scores_winner.pkl")
+            break
 
     return scores
 
-def main():
+def multiagent(cfg):
+    cfg = load_cfg()
+    db = get_db()
+    env, agent1, agent2 = get_agents_unity(cfg)
+    return ddpg_multiagent(env, agent1, agent2, cfg, db)
+
+def selfplay(cfg):
     cfg = load_cfg()
     db = get_db()
     env, agent = get_agent_unity(cfg)
     # agent = load_pretrained(agent)
-    scores = ddpg_selfplay(env ,agent, cfg, db)
+    return ddpg_selfplay(env ,agent, cfg, db)
+
+def main():
+    cfg = load_cfg()
+    self_play = cfg["Training"]["Self_play"]
+    if self_play:
+        scores = selfplay(cfg)
+    else:
+        scores = multiagent(cfg)
+
 
 if __name__ == "__main__":
     main()
