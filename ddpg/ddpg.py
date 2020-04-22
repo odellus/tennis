@@ -22,14 +22,15 @@ def ddpg_multiagent(env, agent1, agent2, cfg, db):
     random_episodes = cfg["Training"]["Random_episodes"]
     starting_random = cfg["Training"]["Starting_random"]
     brain_index = cfg["Agent"]["Brain_index"]
-
+    persist_mongodb = cfg["Training"]["Persist_mongodb"]
 
     #Initialize score lists
     scores_deque = deque(maxlen=print_every)
     scores = []
     # Create a directory to save the findings.
     # experiment_dir = setup_experiment(cfg)
-    experiment_id = setup_experiment(db, cfg)
+    if persist_mongodb:
+        experiment_id = setup_experiment(db, cfg)
     brain_name = env.brain_names[brain_index]
     # Train for n_episodes
     for i_episode in range(1, n_episodes+1):
@@ -78,8 +79,14 @@ def ddpg_multiagent(env, agent1, agent2, cfg, db):
         visualize = False
         if i_episode % print_every == 0:
             # persist_experiment(experiment_dir, i_episode, agent, scores)
-            persist_experiment(db, experiment_id, i_episode, agent1, scores, print_every)
-            persist_experiment(db, experiment_id, i_episode, agent2, scores, print_every)
+            if persist_mongodb:
+                persist_experiment(db, experiment_id, i_episode, agent1, scores, print_every)
+                persist_experiment(db, experiment_id, i_episode, agent2, scores, print_every)
+            else:
+                torch.save(agent1.actor_local.state_dict(), f"checkpoint_actor_1_{i_episode}.pth")
+                torch.save(agent1.critic_local.state_dict(), f"checkpoint_critic_1_{i_episode}.pth")
+                torch.save(agent2.actor_local.state_dict(), f"checkpoint_actor_2_{i_episode}.pth")
+                torch.save(agent2.critic_local.state_dict(), f"checkpoint_critic_2_{i_episode}.pth")
             print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, mean_score))
 
 
@@ -142,8 +149,13 @@ def ddpg_selfplay(env, agent, cfg, db):
         visualize = False
         if i_episode % print_every == 0:
             # persist_experiment(experiment_dir, i_episode, agent, scores)
-            persist_experiment(db, experiment_id, i_episode, agent, scores, print_every)
+            #persist_experiment(db, experiment_id, i_episode, agent, scores, print_every)
             # persist_experiment(db, experiment_id, i_episode, agent2, scores, print_every)
+            if persist_mongodb:
+                persist_experiment(db, experiment_id, i_episode, agent2, scores, print_every)
+            else:
+                torch.save(agent.actor_local.state_dict(), f"checkpoint_actor_{i_episode}.pth")
+                torch.save(agent.critic_local.state_dict(), f"checkpoint_critic_{i_episode}.pth")
             print("\rEpisode {}\tAverage Score: {:.4f}".format(i_episode, mean_score))
         if i_episode % dump_agent == 0:
             # To heck with it let's save some to disk even though I have utilities to load.
