@@ -196,7 +196,7 @@ Model:
   fc1_size_actor:   256    # Dimensionality of first fully connected actor layer
   fcs1_size_critic: 256    # Dimensionality of first fully connected critic layer
   fc2_size_critic:  256    # Dimensionality of second fully connected critic layer
-  fc3_size_critic:  128    # Dimensionality of second fully connected critic layer
+  fc3_size_critic:  128    # Dimensionality of third fully connected critic layer
   weight_init_lim:   0.003 # Absolute value of initial weights of output layers
 
 # Hyperparameters which define the noise process
