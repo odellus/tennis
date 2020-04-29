@@ -80,7 +80,7 @@ for i_episode in range(num_episodes):
 As you can see from the fact we call `agent.act()` for both agents in the simulation using the same PyTorch model, we are exploiting the fact that the tennis environment has been designed for reinforment learning agents which utilize self-play.
 
 #### Parameter Noise
-After much consternation and many weaks spent fooling with every configuration possible, up to and including adding a prioritized experience replay buffer<sup>5</sup>, we decided to utilize parameter noise<sup>7</sup> as opposed to action noise to explore the policy space. Our novel implementation of parameter noise went as follows:
+After much consternation and many weeks spent fooling with every configuration possible, up to and including adding a prioritized experience replay buffer<sup>5</sup>, we decided to utilize parameter noise<sup>7</sup> as opposed to action noise to explore the policy space. Our novel implementation of parameter noise went as follows:
 1. We created a new model for the noise in `model.py` where we simply inherit the `Actor` class and over-write their `reset_parameters()` method to generate normally distributed noise in the parameter space.
 ```python
 class ActorNoise(Actor):
