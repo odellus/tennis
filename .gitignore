@@ -4,4 +4,3 @@ __pycache__
 unity-environment.log
 ddpg/checkpoint_*.pth
 ml-agents
-ddpg
