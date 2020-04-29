@@ -37,8 +37,8 @@ Training:
   Persist_mongodb: True
   Dump_agent: 100 # How frequently to dump the agent to disk (saved to db more frequently)
   Pretrained: True # Whether to load pretrained weights
-  Actor_fname: ./checkpoint_actor_pretrained.pth # The name of the actor weights
-  Critic_fname: ./checkpoint_critic_pretrained.pth # name ofthe critic weights
+  Actor_fname: ./pretrained_actor.pth # The name of the actor weights
+  Critic_fname: ./pretrained_critic.pth # name ofthe critic weights
   Pretrained_from:
     Experiment_id: 5e9661f203832959e6507d44 # this is the uuid of the experiment in the DB
     Episode_index: 1000 # What episode these weights correspond to.

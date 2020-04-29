@@ -2,5 +2,5 @@ Tennis_Linux_NoVis
 ./*.zip
 __pycache__
 unity-environment.log
-ddpg/*.pth
+ddpg/checkpoint_*.pth
 ml-agents
