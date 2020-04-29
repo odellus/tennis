@@ -239,7 +239,7 @@ The architecture of the critic network which maps state and action vectors onto 
 ### Plot of Rewards
 
 <!-- A plot of rewards per episode is included to illustrate that the agent is able to receive an average reward (over 100 episodes) of at least +30. The submission reports the number of episodes needed to solve the environment. -->
-Omitting the 1000 steps of randomized replay buffere initialization and pre-training of the initial weights of the successful agent, our agent was able to surpass the 0.5 mark over 100 episodes in only _287 episodes_. What a difference parameter noise made in exploring the problem space to find policies which return large rewards indeed.
+Omitting the 1000 steps of randomized replay buffer initialization and pre-training of the initial weights of the successful agent, our agent was able to surpass the 0.5 mark over 100 episodes in only _287 episodes_. What a difference parameter noise made in exploring the problem space to find policies which return large rewards indeed.
 
 ![scores](./learning_curve.png)
 
