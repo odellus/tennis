@@ -13,6 +13,10 @@ def hidden_init(layer):
     lim = 1./ np.sqrt(fan_in)
     return (-lim, lim)
 
+def norm_init(layer):
+    fan_in = layer.weight.data.size()[0]
+    return 1./np.sqrt(fan_in)
+
 class Actor(nn.Module):
     """Actor Policy model."""
 
@@ -57,7 +61,7 @@ class ActorNoise(Actor):
         super(ActorNoise, self).__init__(state_size, action_size, seed, cfg)
 
     def reset_parameters(self):
-        self.fc1.weight.data.normal_(*hidden_init(self.fc1))
+        self.fc1.weight.data.normal_(std=norm_init(self.fc1))
         self.fc2.weight.data.normal_(std=self.weight_init_lim)
 
 class Critic(nn.Module):
