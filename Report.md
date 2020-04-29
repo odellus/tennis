@@ -92,7 +92,7 @@ class ActorNoise(Actor):
 
     def reset_parameters(self):
         # One thing different, use normally distributed noise.
-        self.fc1.weight.data.normal_(*hidden_init(self.fc1))
+        self.fc1.weight.data.normal_(std=norm_init(self.fc1))
         self.fc2.weight.data.normal_(std=self.weight_init_lim)
 ```
 2. We utilized the pattern of `agent.soft_update()` in `ddpg_agent.py` to create a new method `agent.hard_update()` which adds the `actor_local` model to `noise_modulation` times the `actor_noise` model. This effectively gives us a copy of `actor_local` with a bit of noise injected into the parameter space.
