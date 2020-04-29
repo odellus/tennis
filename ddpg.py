@@ -143,8 +143,6 @@ def ddpg_selfplay(env, agent, cfg, db):
         for t in range(max_t):
             if i_episode < starting_random:
                 actions = 2 * np.random.rand(n_agents, agent.action_size) - 1.0
-                # for i_agent in range(n_agents):
-                #     actions[i_agent, :] = agent.act(states[i_agent, :])
             else:
                 for i_agent in range(n_agents):
                     actions[i_agent, :] = agent.act(states[i_agent, :])
