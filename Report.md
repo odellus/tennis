@@ -4,7 +4,7 @@
 ### Learning Algorithm
 
 <!-- The report clearly describes the learning algorithm, along with the chosen hyperparameters. It also describes the model architectures for any neural networks. -->
-To solve the tennis environment we adapted Deep Deterministic Policy Gradient<sup>1</sup> from the Udacity deep-reinforcement-learning repository<sup>2</sup> on GitHub.
+The tennis environment features two agents who both have a state space of 24 and an action space of 2. To solve the tennis environment we adapted Deep Deterministic Policy Gradient<sup>1</sup> from the Udacity deep-reinforcement-learning repository<sup>2</sup> on GitHub.
 #### DDPG
 The core of the learning algorithm updates according to the following:
 
@@ -59,7 +59,7 @@ def learn(self, experiences):
 DDPG attempts to minimize the TD error in a similar way as DDQN<sup>6</sup>, but with the extra step of minimizing the weights of an actor network with respect to the state-action function Q( _s_, _a_ ) represented by a critic network.
 
 #### Randomized replay buffer initialization
-To enable greater exploration of the state space without spending a lot of time messing around with weight decay parameters, we decided to fill the replay buffer with (_s_, _a_, _r_, _s'_ ) experience tuples from 1000 episodes according to the following rule.
+To enable greater exploration of the state space without spending a lot of time messing around with weight decay parameters, after searching through the forum<sup>3</sup> we decided to initialize the replay buffer with 1000 episodes worth of (_s_, _a_, _r_, _s'_ ) experience tuples by doing the following in our main learning loop:
 
 
 ```python
@@ -68,7 +68,7 @@ for i_episode in range(num_episodes):
         # Oh hey look we're gathering random sample neato go crazy!
         if i_episode < starting_random:
             actions = 2 * np.random.rand(n_agents, agent.action_size) - 1.0
-        # Oop better get serious and learn this is serious business!
+        # Oop better get serious and pay attention this is serious business!
         else:
             for i_agent in range(n_agents):
                 # Self-play means different agents, same model. Like this.
@@ -80,7 +80,7 @@ for i_episode in range(num_episodes):
 As you can see from the fact we call `agent.act()` for both agents in the simulation using the same PyTorch model, we are exploiting the fact that the tennis environment has been designed for reinforment learning agents exploiting self-play.
 
 #### Parameter Noise
-After much consternation and many weaks spent fooling with every configuration possible, up to and including adding a prioritized experience replay buffer, we decided to utilize parameter noise as opposed to action noise to explore the policy space. Our novel implementation of parameter noise went as follows:
+After much consternation and many weaks spent fooling with every configuration possible, up to and including adding a prioritized experience replay buffer<sup>5</sup>, we decided to utilize parameter noise<sup>7</sup> as opposed to action noise to explore the policy space. Our novel implementation of parameter noise went as follows:
 1. We created a new model for the noise in `model.py` where we simply inherit the `Actor` class and over-write their `reset_parameters()` method to generate normally distributed noise in the parameter space.
 ```python
 class ActorNoise(Actor):
@@ -130,7 +130,7 @@ def act(self, state, add_noise=True):
       return np.clip(action, -self.action_clip, self.action_clip)
 ```
 
-We experimented with different values for `noise_modulation` and eventually had success with `0.1`.
+We decided to get the action from the state by evaluating the `actor_noise` model instead of copying noise over into `actor_local` that we would just have to get rid of immediately afterwards. After experimenting with different values we eventually had success with `noise_modulation` set to 0.1.
 
 <!-- To further stabilize training in consensus with the community<sup>3</sup> we added an `UPDATE_EVERY` configuration variable that ensured the algorithm wasn't making too many updates with respect to the influx of new ( _s_, _a_, _r_ ,_s'_ ) tuples according to the following rule:
 ```python
@@ -150,7 +150,7 @@ def step(self, state, action, reward, next_state, done):
 ``` -->
 
 #### Hyperparameters
-The hyperparameters we used when successfully training our agent to achieve an average of 30.0 points over 100 episodes are outlined in `config.yaml`, the contents of which are reproduced for clarity below.
+The hyperparameters we used when successfully training our agent to achieve an average of 0.5 points over 100 episodes are outlined in `config.yaml`, the contents of which are reproduced for clarity below.
 
 ```yaml
 # Parameters for the Unity Environment
@@ -190,9 +190,6 @@ Training:
   Pretrained: True # Whether to load pretrained weights
   Actor_fname: ./pretrained_actor.pth # The name of the actor weights
   Critic_fname: ./pretrained_critic.pth # name ofthe critic weights
-  Pretrained_from:
-    Experiment_id: 5e9661f203832959e6507d44 # this is the uuid of the experiment in the DB
-    Episode_index: 1000 # What episode these weights correspond to.
 
 # Hyperparameters used to define the network architecture
 Model:
@@ -209,7 +206,8 @@ Noise:
   Sigma: 0.05            # weight given to uniform random number in [0,1)
 ```
 
-To create the pretrained weights we were using when we eventually hit the magic `0.5` mark we had the same hyperparameters except for the following:
+To create the pretrained weights we were using when we eventually hit the magic
+0.5 mark we had the same hyperparameters except for the following:
 ```yaml
 Agent:
   Lr_critic: 0.001
@@ -220,10 +218,15 @@ Training:
 Noise:
   Sigma: 0.2
 ```
-and noise was also be injected into the action space during pre-training. It's been a hot mess let me tell you what.
+which you can find in `config_pretraining.yaml`. Noise was injected into the action space during pre-training phase. We had already trained an agent to reach up to 0.3 averaged over a hundred episodes using only action space noise, but to reach the final goal of 0.5 we used parameter space and the earlier configuration settings.
 
 #### Actor Network
 The architecture of the actor network which maps states onto actions is defined by the following graphic:
+
+![nn arch](./actor_network.png)
+
+#### Noise Network
+The architecture of the noise network which injects noise into the mapping between states and actions in the parameter space is defined by the following graphic:
 
 ![nn arch](./actor_network.png)
 
@@ -236,19 +239,25 @@ The architecture of the critic network which maps state and action vectors onto 
 ### Plot of Rewards
 
 <!-- A plot of rewards per episode is included to illustrate that the agent is able to receive an average reward (over 100 episodes) of at least +30. The submission reports the number of episodes needed to solve the environment. -->
-After many trials we were finally able to get our agent to learn to solve the reacher environment. To accelerate our final push for an average score of +30 over 100 episodes, we used the weights of an earlier network that reached a respectable score before the training diverged to give our agent a boost towards successfully solving the environment. The agent took 3900 episodes to learn to solve the environment.
+Omitting the 1000 steps of randomized replay buffere initialization and pre-training of the initial weights of the successful agent, our agent was able to surpass the 0.5 mark over 100 episodes in only _287 episodes_. What a difference parameter noise made in exploring the problem space to find policies which return large rewards indeed.
 
 ![scores](./learning_curve.png)
 
 ### Ideas for Future Work
 
 <!-- The submission has concrete future ideas for improving the agent's performance. -->
-Given the similarity between DDPG and DQN, many of the enhancements to DQN that went into the Rainbow paper<sup>4</sup> are perhaps viable updates. Of particular interest is Prioritized Experience Replay<sup>5</sup>, as the number of episodes required to solve this particular task seemed excessive for the difficulty of the problem. Training more frequently on ( _s_, _a_, _r_ ,_s'_ ) tuples with a high TD error might ameliorate the poor sample efficiency we saw from DDPG in solving this environment.
+<!-- Given the similarity between DDPG and DQN, many of the enhancements to DQN that went into the Rainbow paper<sup>4</sup> are perhaps viable updates. Of particular interest is Prioritized Experience Replay<sup>5</sup>, as the number of episodes required to solve this particular task seemed excessive for the difficulty of the problem. Training more frequently on ( _s_, _a_, _r_ ,_s'_ ) tuples with a high TD error might ameliorate the poor sample efficiency we saw from DDPG in solving this environment. -->
+
+Given the similarity between DDPG and DQN, many of the enhancements to DQN that went into the Rainbow paper<sup>4</sup> are perhaps viable updates. We might try reimplementing the Prioritized Experience Replay<sup>5</sup> now that we're using parameter space noise but even given our random replay buffer initialization and weight pre-training, 287 episodes to solve the environment is very impressive. We are not sure how much better another method would be expected to do.
+
+If the parameter space approach didn't work I would have probably started over from scratch and used A2C<sup>8</sup> as it can use the KL-divergence to stabilize training and prevent catastrophic forgetting. It would also be nice to not have to fiddle with the amplitude of the noise so much by using a stochastic normally distributed policy where `mu` and `sigma` aren't hyperparameters, but values to be estimated during learning.
 
 ### References
 1. Lillicrap, Timothy P., et al. ‘Continuous Control with Deep Reinforcement Learning’. ArXiv:1509.02971 [Cs, Stat], July 2019. arXiv.org, http://arxiv.org/abs/1509.02971.
 2. Udacity, deep-reinforcement-learning, (2019), GitHub repository, https://github.com/udacity/deep-reinforcement-learning
-3. Nin L, Continuous Control Project - Agent Not Learning - Need Help, https://knowledge.udacity.com/questions/22843
+3. Erick G, I cannot get a positive reward in the tennis environment, https://knowledge.udacity.com/questions/101614
 4. Hessel, Matteo, et al. ‘Rainbow: Combining Improvements in Deep Reinforcement Learning’. ArXiv:1710.02298 [Cs], Oct. 2017. arXiv.org, http://arxiv.org/abs/1710.02298.
 5. Schaul, Tom, et al. ‘Prioritized Experience Replay’. ArXiv:1511.05952 [Cs], Feb. 2016. arXiv.org, http://arxiv.org/abs/1511.05952.
 6. van Hasselt, Hado, et al. ‘Deep Reinforcement Learning with Double Q-Learning’. ArXiv:1509.06461 [Cs], Dec. 2015. arXiv.org, http://arxiv.org/abs/1509.06461.
+7. Plappert, Matthias, et al. ‘Parameter Space Noise for Exploration’. ArXiv:1706.01905 [Cs, Stat], Jan. 2018. arXiv.org, http://arxiv.org/abs/1706.01905.
+8. Mnih, Volodymyr, et al. ‘Asynchronous Methods for Deep Reinforcement Learning’. ArXiv:1602.01783 [Cs], June 2016. arXiv.org, http://arxiv.org/abs/1602.01783.

@@ -38,9 +38,6 @@ Training:
   Pretrained: False # Whether to load pretrained weights
   Actor_fname: ./checkpoint_actor_pretrained.pth # The name of the actor weights
   Critic_fname: ./checkpoint_critic_pretrained.pth # name ofthe critic weights
-  Pretrained_from:
-    Experiment_id: 5e9661f203832959e6507d44 # this is the uuid of the experiment in the DB
-    Episode_index: 1000 # What episode these weights correspond to.
 
 # Hyperparameters used to define the network architecture
 Model:
