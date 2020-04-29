@@ -2,7 +2,7 @@
 
 import numpy as np
 # import copy
-from model import Actor, Critic
+from model import Actor, ActorNoise, Critic
 
 import torch
 import torch.nn as nn
@@ -39,6 +39,7 @@ class Agent:
         update_every = cfg["Agent"]["Update_every"]
         noise_min = cfg["Agent"]["Noise_min"]
         noise_initial = cfg["Agent"]["Noise_initial"]
+        action_clip = cfg["Agent"]["Action_clip"]
 
         # Attach some configuration parameters
         self.state_size = state_size
@@ -47,10 +48,12 @@ class Agent:
         self.gamma = gamma
         self.tau = tau
         self.update_every = update_every
+        self.action_clip = action_clip
 
         # Actor Networks both Local and Target.
         self.actor_local = Actor(state_size, action_size, random_seed, cfg).to(device)
         self.actor_target = Actor(state_size, action_size, random_seed, cfg).to(device)
+        self.actor_noise = ActorNoise(state_size, action_size, random_seed, cfg).to(device)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=lr_actor)
 
         # Critic Networks both Local and Target.
@@ -92,10 +95,15 @@ class Agent:
         state = torch.from_numpy(state).float().to(device)
         self.actor_local.eval()
         action = self.actor_local(state).cpu().data.numpy()
-        self.actor_local.train()
         if add_noise:
-            action += self.noise_modulation * self.noise.sample()
-        return np.clip(action, -1, 1)
+            # action += self.noise_modulation * self.noise.sample()
+            self.actor_noise.reset_parameters()
+            self.actor_noise.eval()
+            self.hard_update(self.actor_local, self.actor_noise, self.noise_modulation)
+            action = self.actor_noise(state).cpu().data.numpy()
+            self.actor_noise.train()
+        self.actor_local.train()
+        return np.clip(action, -self.action_clip, self.action_clip)
 
     def reset(self):
         self.n_steps = 0
@@ -167,3 +175,15 @@ class Agent:
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
+
+    def hard_update(self, local_model, noise_model, noise_modulation):
+        """Hard update model parameters.
+        theta_noise = theta_local + self.noise_modulation * theta_noise
+
+        Params
+        ======
+            local_model: PyTorch model (weight source)
+            noise_model: PyTorch model (weight destination)
+        """
+        for noise_param, local_param in zip(noise_model.parameters(), local_model.parameters()):
+            noise_param.data.copy_(local_param.data + noise_modulation * noise_param.data)

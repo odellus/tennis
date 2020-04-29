@@ -103,7 +103,7 @@ def extract_weights(weights_db, weight_id, agent):
     """
     weights = weights_db.find_one({"_id": weight_id})
     actor_weights = weights["actor"]
-    critic_weights = weight["critic"]
+    critic_weights = weights["critic"]
     agent = load_actor(actor_weights, agent)
     agent = load_critic(critic_weights, agent)
     return agent

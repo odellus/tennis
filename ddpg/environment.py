@@ -46,9 +46,9 @@ def get_agent_unity(cfg):
     action_size = brain.vector_action_space_size
     # Create an agent using state and action sizes of environment
     agent = Agent(state_size=state_size, action_size=action_size, random_seed=seed, cfg=cfg)
-    if pretrained:
-        agent = load_agent_weights(agent, cfg)
-        print("Loaded pretrained weights!")
+    # if pretrained:
+    #     agent = load_agent_weights(agent, cfg)
+    #     print("Loaded pretrained weights!")
     return env, agent
 
 
