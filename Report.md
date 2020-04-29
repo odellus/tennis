@@ -218,7 +218,7 @@ Training:
 Noise:
   Sigma: 0.2  # weight given to normal random number in (-1,1)
 ```
-which you can find in `config_pretraining.yaml`. Noise was injected into the action space during pre-training phase. We had already trained an agent to reach up to 0.3 averaged over a hundred episodes using only action space noise, but to reach the final goal of 0.5 we used parameter space and the earlier configuration settings.
+which you can find in `config_pretraining.yaml`. Noise was injected into the action space during pre-training phase. We had already trained an agent to reach up to 0.3 averaged over a hundred episodes using only action space noise, but to reach the final goal of 0.5 we used parameter space and the configuration settings in `config.yaml` we gave first.
 
 #### Actor Network
 The architecture of the actor network which maps states onto actions is defined by the following graphic:
