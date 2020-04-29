@@ -3,18 +3,8 @@
 Effort to train an agent (or agents) to play tennis collaboratively.
 
 ## **ENVIRONMENT**
-Some important information about the `tennis` environment from Unity's ML-Agents.
-```yaml
-# The number of agents in the environment
-n_agents:     2
-# The dimension of a single state in the environment.
-state_space: 24
-# The dimension of the environment's action space
-action_space: 2
-# Average score over 100 episodes where environment is considered solved.
-success:    0.5   
+Some important information about the `tennis` environment from Unity's ML-Agents: the size of the action space is two. The size of the naive state space is 8, but we use three consecutive states as one so the dimension of the state space use to map states onto actions is 24. The environment is considered solved when an average score of 0.5 over the last 100 episodes is reached.
 
-```
 ## **SETUP**
 If you don't wish to use MongoDB to persist experimental results be sure you have `Persist_mongodb` set to False in the configurations, and just run `bash setup.sh` to install.
 
