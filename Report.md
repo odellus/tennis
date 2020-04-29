@@ -183,7 +183,7 @@ Training:
   Number_episodes: 10000  # Number of episodes
   Max_timesteps: 3000    # Maximum number of timesteps per episode
   Score_window: 100       # Length of averaging window for agent rewards
-  Starting_random: 1000   # Start the training with Starting_random episodes of random sampling
+  Starting_random: 1000   # Start with this many episodes of random sampling
   Self_play: True      # Use self-play or use two learning agents for the environment.
   Persist_mongodb: False
   Dump_agent: 100 # How frequently to dump the agent to disk (saved to db more frequently)
@@ -210,13 +210,13 @@ To create the pretrained weights we were using when we eventually hit the magic
 0.5 mark we had the same hyperparameters except for the following:
 ```yaml
 Agent:
-  Lr_critic: 0.001
-  Noise_min: 0.2   # The minimum amount of noise we will inject.
-  Noise_initial: 1.0  # The starting modulated amplitude of the noise process.
+  Lr_critic: 0.001       # learning rate for critic
+  Noise_min: 0.2         # The minimum amount of noise we will inject.
+  Noise_initial: 1.0     # The starting modulated amplitude of the noise process.
 Training:
-  Starting_random: 300   # Start the training with Starting_random episodes of random sampling
+  Starting_random: 300   # Start with this many episodes of random sampling
 Noise:
-  Sigma: 0.2  # weight given to normal random number in (-1,1)
+  Sigma: 0.2             # weight given to normal random number in (-1,1)
 ```
 which you can find in `config_pretraining.yaml`. Noise was injected into the action space during pre-training phase. We had already trained an agent to reach up to 0.3 averaged over a hundred episodes using only action space noise, but to reach the final goal of 0.5 we used parameter space and the configuration settings in `config.yaml` we gave first.
 
