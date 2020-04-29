@@ -212,7 +212,7 @@ To create the pretrained weights we were using when we eventually hit the magic
 Agent:
   Lr_critic: 0.001
   Noise_min: 0.2   # The minimum amount of noise we will inject.
-  Noise_initial: 0.1  # The starting modulated amplitude of the noise process.
+  Noise_initial: 1.0  # The starting modulated amplitude of the noise process.
 Training:
   Starting_random: 300   # Start the training with Starting_random episodes of random sampling
 Noise:
