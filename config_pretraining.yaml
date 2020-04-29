@@ -9,7 +9,7 @@ Environment:
   Success: 0.5          # score success cutoff
   # Location of ml-agents python directory.
   Unity_pythonpath: ./ml-agents/python
-  Random_seed: 128       # random seed passed to all RNGs involved in code.
+  Random_seed: 256       # random seed passed to all RNGs involved in code.
 
 # Parameters for the DQN Agent
 Agent:
@@ -18,7 +18,7 @@ Agent:
   Gamma: 0.99             # discount factor
   Tau: 0.001              # for soft update of target parameters
   Lr_actor: 0.0001        # learning rate for actor
-  Lr_critic: 0.0003        # learning rate for critic
+  Lr_critic: 0.001        # learning rate for critic
   Weight_decay: 0.0       # L2 weight decay for regularization
   Brain_index: 0          # index of agent in environment
   Noise_decay: 1.0       # How much to decay noise modulation during each step.
@@ -31,13 +31,13 @@ Training:
   Number_episodes: 10000  # Number of episodes
   Max_timesteps: 3000    # Maximum number of timesteps per episode
   Score_window: 100       # Length of averaging window for agent rewards
-  Starting_random: 500   # Start the training with Starting_random episodes of random sampling
+  Starting_random: 300   # Start the training with Starting_random episodes of random sampling
   Self_play: True      # Use self-play or use two learning agents for the environment.
   Persist_mongodb: True
   Dump_agent: 100 # How frequently to dump the agent to disk (saved to db more frequently)
-  Pretrained: True # Whether to load pretrained weights
-  Actor_fname: ./checkpoint_actor_nonoise_pretrained.pth # The name of the actor weights
-  Critic_fname: ./checkpoint_critic_nonoise_pretrained.pth # name ofthe critic weights
+  Pretrained: False # Whether to load pretrained weights
+  Actor_fname: ./checkpoint_actor_pretrained.pth # The name of the actor weights
+  Critic_fname: ./checkpoint_critic_pretrained.pth # name ofthe critic weights
   Pretrained_from:
     Experiment_id: 5e9661f203832959e6507d44 # this is the uuid of the experiment in the DB
     Episode_index: 1000 # What episode these weights correspond to.
@@ -54,4 +54,4 @@ Model:
 Noise:
   Mu:    0.0            # Mean value of the noise process.
   Theta: 0.15           # weight given to (mu - x) in computation of dx
-  Sigma: 0.05            # weight given to uniform random number in [0,1)
+  Sigma: 0.2            # weight given to uniform random number in [0,1)

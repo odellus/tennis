@@ -1,0 +1,58 @@
+# Filename: config.yaml
+# Description: Contains configuration variables for navigation project
+# Author: Thomas Wood (odell.wood@gmail.com)
+
+# Parameters for the Unity Environment
+Environment:
+  # location of executable
+  Filepath: ./Tennis_Linux_NoVis/Tennis.x86_64
+  Success: 0.5          # score success cutoff
+  # Location of ml-agents python directory.
+  Unity_pythonpath: ./ml-agents/python
+  Random_seed: 736       # random seed passed to all RNGs involved in code.
+
+# Parameters for the DQN Agent
+Agent:
+  Buffer_size: 1000000    # replay buffer size
+  Batch_size: 128         # minibatch size
+  Gamma: 0.99             # discount factor
+  Tau: 0.001              # for soft update of target parameters
+  Lr_actor: 0.0001        # learning rate for actor
+  Lr_critic: 0.0003        # learning rate for critic
+  Weight_decay: 0.0       # L2 weight decay for regularization
+  Brain_index: 0          # index of agent in environment
+  Noise_decay: 1.0       # How much to decay noise modulation during each step.
+  Noise_min: -0.2   # The minimum amount of noise we will inject.
+  Noise_initial: 0.1  # The starting modulated amplitude of the noise process.
+  Update_every: 1    # How many agent.step()s to take before doing a learning step.
+  Action_clip: 1.0   # Where to clip actions taken by agent.
+
+# Hyperparameters used during optimization
+Training:
+  Number_episodes: 10000  # Number of episodes
+  Max_timesteps: 3000    # Maximum number of timesteps per episode
+  Score_window: 100       # Length of averaging window for agent rewards
+  Starting_random: 1000   # Start the training with Starting_random episodes of random sampling
+  Self_play: True      # Use self-play or use two learning agents for the environment.
+  Persist_mongodb: True
+  Dump_agent: 100 # How frequently to dump the agent to disk (saved to db more frequently)
+  Pretrained: True # Whether to load pretrained weights
+  Actor_fname: ./pretrained_actor.pth # The name of the actor weights
+  Critic_fname: ./pretrained_critic.pth # name ofthe critic weights
+  Pretrained_from:
+    Experiment_id: 5e9661f203832959e6507d44 # this is the uuid of the experiment in the DB
+    Episode_index: 1000 # What episode these weights correspond to.
+
+# Hyperparameters used to define the network architecture
+Model:
+  fc1_size_actor:   256    # Dimensionality of first fully connected actor layer
+  fcs1_size_critic: 256    # Dimensionality of first fully connected critic layer
+  fc2_size_critic:  256    # Dimensionality of second fully connected critic layer
+  fc3_size_critic:  128    # Dimensionality of second fully connected critic layer
+  weight_init_lim:   0.003 # Absolute value of initial weights of output layers
+
+# Hyperparameters which define the noise process
+Noise:
+  Mu:    0.0            # Mean value of the noise process.
+  Theta: 0.15           # weight given to (mu - x) in computation of dx
+  Sigma: 0.05            # weight given to uniform random number in [0,1)
