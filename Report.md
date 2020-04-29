@@ -203,7 +203,7 @@ Model:
 Noise:
   Mu:    0.0            # Mean value of the noise process.
   Theta: 0.15           # weight given to (mu - x) in computation of dx
-  Sigma: 0.05            # weight given to uniform random number in [0,1)
+  Sigma: 0.05           # weight given to normal random number in (-1,1)
 ```
 
 To create the pretrained weights we were using when we eventually hit the magic
@@ -216,7 +216,7 @@ Agent:
 Training:
   Starting_random: 300   # Start the training with Starting_random episodes of random sampling
 Noise:
-  Sigma: 0.2
+  Sigma: 0.2  # weight given to normal random number in (-1,1)
 ```
 which you can find in `config_pretraining.yaml`. Noise was injected into the action space during pre-training phase. We had already trained an agent to reach up to 0.3 averaged over a hundred episodes using only action space noise, but to reach the final goal of 0.5 we used parameter space and the earlier configuration settings.
 
